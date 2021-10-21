@@ -12,7 +12,9 @@ import com.acmebank.accountmanager.repository.WalletRepository;
 import com.acmebank.accountmanager.service.WalletService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.retry.annotation.Backoff;
 
 @Service
 @Transactional
@@ -20,6 +22,7 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     WalletRepository walletRepository;
 
+    @Retryable(value = { Exception.class }, maxAttempts = 30, backoff = @Backoff(delay = 500))
     @Override
     public Wallet findWalletByUser(User user) {
         Optional<Wallet> wallet = walletRepository.findByUser(user);
@@ -31,6 +34,7 @@ public class WalletServiceImpl implements WalletService {
         return wallet.get();
     }
 
+    @Retryable(value = { Exception.class }, maxAttempts = 30, backoff = @Backoff(delay = 500))
     @Override
     public List<Wallet> findWalletsBySenderAndReceiverId(Long senderId, Long receiverId) {
         List<Wallet> wallets = walletRepository.findAllWalletsBySenderAndReceiverId(senderId, receiverId);
@@ -38,6 +42,7 @@ public class WalletServiceImpl implements WalletService {
         return wallets;
     }
 
+    @Retryable(value = { Exception.class }, maxAttempts = 30, backoff = @Backoff(delay = 500))
     @Override
     public void transferBetweenUsers(User sender, User receiver, Double amount) throws Exception {
         List<Wallet> walletList = this.findWalletsBySenderAndReceiverId(sender.getId(), receiver.getId());
